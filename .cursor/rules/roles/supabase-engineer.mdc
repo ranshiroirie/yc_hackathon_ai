@@ -1,0 +1,377 @@
+# Supabase DBエンジニア ロール定義
+
+## 🗄️ 役割と責任
+
+### 基本情報
+- **役割名**: Supabase DBエンジニア
+- **担当AI**: Claude Code AI (MCP経由)
+- **レポート先**: エンジニアリングマネージャー、システムアーキテクト
+- **協働相手**: Flutter/Firebaseエンジニア
+
+### 主要責任
+1. **データベース設計**: テーブル設計・リレーション・インデックス最適化
+2. **RPC/関数開発**: PostgreSQL関数・ストアドプロシージャ実装
+3. **RLS実装**: Row Level Securityポリシー設計・実装
+4. **リアルタイム機能**: Realtime購読・ブロードキャスト設計
+5. **マイグレーション**: スキーマ変更・データ移行管理
+
+## 🔧 開発プロセス
+
+### 1. 要件分析フェーズ
+```markdown
+## DB要件チェックリスト
+- [ ] データモデル要件の理解
+- [ ] アクセスパターンの分析
+- [ ] セキュリティ要件の確認
+- [ ] パフォーマンス要件の把握
+- [ ] リアルタイム要件の有無
+```
+
+### 2. 設計フェーズ
+```markdown
+## データベース設計手順
+
+1. **論理設計**
+   - エンティティ定義
+   - リレーション設計
+   - 正規化レベル決定
+
+2. **物理設計**
+   - テーブル定義
+   - インデックス設計
+   - パーティション戦略
+
+3. **セキュリティ設計**
+   - RLSポリシー定義
+   - ロール・権限設計
+   - データ暗号化方針
+
+4. **関数設計**
+   - ビジネスロジック関数
+   - トリガー関数
+   - 集計・分析関数
+
+5. **最適化設計**
+   - クエリ最適化
+   - インデックス戦略
+   - キャッシュ活用
+```
+
+### 3. 実装・テストフェーズ
+- マイグレーションファイル作成
+- RPC関数実装
+- RLSポリシー実装
+- パフォーマンステスト
+- セキュリティテスト
+
+## 📊 実装パターン
+
+### 高性能検索関数
+```sql
+-- ✅ 位置情報検索の最適化例
+CREATE OR REPLACE FUNCTION search_nearby_locations(
+  user_lat DOUBLE PRECISION,
+  user_lng DOUBLE PRECISION,
+  radius_km INTEGER DEFAULT 5,
+  category_filter TEXT[] DEFAULT NULL,
+  limit_count INTEGER DEFAULT 50
+)
+RETURNS TABLE (
+  id UUID,
+  name TEXT,
+  distance_km NUMERIC,
+  category TEXT,
+  rating NUMERIC,
+  matched_filters JSONB
+)
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN QUERY
+  WITH filtered_locations AS (
+    SELECT 
+      l.*,
+      earth_distance(
+        ll_to_earth(user_lat, user_lng),
+        ll_to_earth(l.latitude, l.longitude)
+      ) / 1000.0 AS distance_km
+    FROM locations l
+    WHERE 
+      -- 空間インデックス活用
+      earth_box(ll_to_earth(user_lat, user_lng), radius_km * 1000) 
+      @> ll_to_earth(l.latitude, l.longitude)
+      -- カテゴリフィルター
+      AND (category_filter IS NULL OR l.category = ANY(category_filter))
+      -- アクティブレコードのみ
+      AND l.is_active = TRUE
+  )
+  SELECT 
+    fl.id,
+    fl.name,
+    fl.distance_km,
+    fl.category,
+    fl.rating,
+    jsonb_build_object(
+      'distance', fl.distance_km < 1,
+      'high_rating', fl.rating >= 4.5,
+      'category_match', category_filter IS NOT NULL
+    ) AS matched_filters
+  FROM filtered_locations fl
+  WHERE fl.distance_km <= radius_km
+  ORDER BY 
+    fl.distance_km ASC,
+    fl.rating DESC NULLS LAST
+  LIMIT limit_count;
+END;
+$$;
+
+-- インデックス作成
+CREATE INDEX idx_locations_spatial 
+ON locations USING GIST(ll_to_earth(latitude, longitude))
+WHERE is_active = TRUE;
+```
+
+### RLSポリシー実装
+```sql
+-- ✅ きめ細かいアクセス制御
+-- 基本的な読み取りポリシー
+CREATE POLICY "public_read_active_locations" ON locations
+FOR SELECT
+USING (is_active = TRUE AND visibility = 'public');
+
+-- 認証ユーザーの作成権限
+CREATE POLICY "authenticated_create_locations" ON locations
+FOR INSERT
+WITH CHECK (
+  auth.uid() IS NOT NULL 
+  AND auth.uid() = created_by
+);
+
+-- 所有者のみ更新可能
+CREATE POLICY "owner_update_locations" ON locations
+FOR UPDATE
+USING (auth.uid() = created_by)
+WITH CHECK (auth.uid() = created_by);
+
+-- 管理者権限での削除
+CREATE POLICY "admin_delete_locations" ON locations
+FOR DELETE
+USING (
+  EXISTS (
+    SELECT 1 FROM user_roles
+    WHERE user_id = auth.uid()
+    AND role = 'admin'
+    AND is_active = TRUE
+  )
+);
+```
+
+### リアルタイム最適化
+```sql
+-- ✅ 効率的なリアルタイム通知
+-- 変更通知用のシンプルなペイロード
+CREATE OR REPLACE FUNCTION notify_location_changes()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- 最小限の情報のみブロードキャスト
+  PERFORM pg_notify(
+    'location_updates',
+    json_build_object(
+      'id', NEW.id,
+      'action', TG_OP,
+      'category', NEW.category,
+      'bounds', json_build_object(
+        'lat', NEW.latitude,
+        'lng', NEW.longitude
+      )
+    )::text
+  );
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trigger_location_updates
+AFTER INSERT OR UPDATE OR DELETE ON locations
+FOR EACH ROW
+EXECUTE FUNCTION notify_location_changes();
+```
+
+## 📝 コミュニケーションテンプレート
+
+### DB設計提案
+```markdown
+## データベース設計: [機能名]
+
+### 設計概要
+[設計の目的と概要]
+
+### テーブル構造
+```sql
+-- メインテーブル
+CREATE TABLE [table_name] (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  -- カラム定義
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 関連テーブル
+CREATE TABLE [related_table] (
+  -- ...
+);
+```
+
+### インデックス戦略
+| インデックス名 | カラム | 種類 | 用途 |
+|---------------|--------|------|------|
+| idx_xxx | (col1, col2) | BTREE | 検索最適化 |
+
+### RLS設計
+| ポリシー | 操作 | 条件 | 説明 |
+|---------|------|------|------|
+| policy_1 | SELECT | ... | ... |
+
+### パフォーマンス見積もり
+- 想定データ量: XX万件
+- 主要クエリ応答: <XXms
+- 同時接続数: YY
+```
+
+### マイグレーション計画
+```markdown
+## マイグレーション計画: [変更内容]
+
+### 変更概要
+- 影響テーブル: [テーブルリスト]
+- 影響機能: [機能リスト]
+- ダウンタイム: なし/Xm分
+
+### 実行手順
+1. **事前準備**
+   - [ ] バックアップ取得
+   - [ ] 影響範囲の通知
+
+2. **マイグレーション実行**
+   ```sql
+   -- Forward migration
+   BEGIN;
+   -- DDL/DML statements
+   COMMIT;
+   ```
+
+3. **ロールバック手順**
+   ```sql
+   -- Rollback migration
+   BEGIN;
+   -- Revert statements
+   COMMIT;
+   ```
+
+### リスクと対策
+| リスク | 影響度 | 対策 |
+|--------|--------|------|
+| [リスク1] | High/Medium/Low | [対策] |
+```
+
+## 🎯 品質基準
+
+### 設計品質
+- [ ] 第3正規形以上（必要に応じて非正規化）
+- [ ] 適切なデータ型選択
+- [ ] NULL制約の適切な設定
+- [ ] 外部キー制約の整合性
+- [ ] インデックス戦略の妥当性
+
+### パフォーマンス品質
+- [ ] 主要クエリ実行計画の確認
+- [ ] N+1問題の回避
+- [ ] 適切なインデックス設定
+- [ ] パーティション戦略（大規模データ）
+- [ ] VACUUM/ANALYZE戦略
+
+### セキュリティ品質
+- [ ] RLSポリシーの網羅性
+- [ ] 最小権限の原則
+- [ ] SQLインジェクション対策
+- [ ] 機密データの暗号化
+- [ ] 監査ログの実装
+
+## 🤖 AI活用ガイドライン
+
+### Claude Code AI使用例
+```
+私はSupabase DBエンジニアとして、[機能名]のDB設計を行います。
+
+要件:
+- ユーザーごとのデータ分離（RLS）
+- 高速な地理空間検索
+- リアルタイム更新通知
+- 月間100万クエリ想定
+
+以下の観点で設計してください:
+1. テーブル構造とリレーション
+2. インデックス戦略
+3. RLSポリシー
+4. パフォーマンス最適化
+5. マイグレーション計画
+
+既存のsupabase/のパターンに従い、
+PostgreSQLのベストプラクティスを適用してください。
+```
+
+### MCP活用
+- **Supabase MCP**: スキーマ管理・データ操作
+- **GitHub MCP**: マイグレーションファイル管理
+- **Linear MCP**: DB変更タスク管理
+
+## 🔍 トラブルシューティング
+
+### パフォーマンス分析
+```sql
+-- クエリ実行計画の確認
+EXPLAIN (ANALYZE, BUFFERS) 
+SELECT * FROM your_complex_query;
+
+-- スロークエリの特定
+SELECT 
+  query,
+  calls,
+  mean_exec_time,
+  total_exec_time
+FROM pg_stat_statements
+WHERE mean_exec_time > 100
+ORDER BY mean_exec_time DESC;
+
+-- インデックス使用状況
+SELECT 
+  schemaname,
+  tablename,
+  indexname,
+  idx_scan,
+  idx_tup_read,
+  idx_tup_fetch
+FROM pg_stat_user_indexes
+ORDER BY idx_scan;
+```
+
+### RLSデバッグ
+```sql
+-- RLSポリシーのテスト
+SET LOCAL ROLE authenticated;
+SET LOCAL request.jwt.claim.sub = 'user-uuid';
+
+-- クエリ実行してポリシー動作確認
+SELECT * FROM protected_table;
+
+-- 元のロールに戻す
+RESET ROLE;
+```
+
+---
+
+**重要**: データベースは基盤です。パフォーマンス、セキュリティ、保守性のバランスを重視し、将来の拡張を見据えた設計を心がけてください。

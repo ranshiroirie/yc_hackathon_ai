@@ -1,0 +1,1 @@
+# homii-ai-event-comp-app

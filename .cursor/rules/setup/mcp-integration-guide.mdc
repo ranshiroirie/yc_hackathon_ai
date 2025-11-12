@@ -1,0 +1,375 @@
+# AI開発チーム MCP統合ガイド
+
+## 🛠️ MCP (Model Context Protocol) 統合概要
+
+### 利用可能なMCPツール
+- **Serena**: LSPベースのコード分析・リファクタリング
+- **Linear**: タスク管理・プロジェクト追跡
+- **Airtable**: データ管理・要件仕様管理
+- **GitHub**: リポジトリ管理・PR/Issue操作
+- **Supabase**: データベース管理・SQL実行
+- **Firebase**: プロジェクト設定・Functions管理
+- **Figma**: デザイン仕様確認（予定）
+
+## 📋 役割別MCP活用マトリクス
+
+| 役割 | Serena | Linear | Airtable | GitHub | Supabase | Firebase |
+|------|--------|--------|----------|---------|----------|----------|
+| システムアーキテクト | ◎ | ◎ | ◎ | ◎ | ○ | ○ |
+| Flutterエンジニア | ◎ | ◎ | △ | ◎ | △ | △ |
+| Firebaseエンジニア | ◎ | ◎ | ◎ | ◎ | △ | ◎ |
+| Supabaseエンジニア | ○ | ◎ | △ | ◎ | ◎ | △ |
+
+- ◎: 主要ツール（日常的に使用）
+- ○: 補助ツール（必要時使用）
+- △: 参照のみ
+
+## 🔄 環境別設定
+
+### 開発環境構成
+```yaml
+# .cursor/environments/config.yaml
+
+environments:
+  development:
+    firebase:
+      emulator: true
+      project: "homii-world-dev"
+    supabase:
+      local: true
+      project_ref: "local"
+    flutter:
+      flavor: "development"
+      constants:
+        USE_LOCALHOST: true
+        IS_INTERNAL: true
+        
+  staging:
+    firebase:
+      emulator: false
+      project: "homii-world-staging"
+    supabase:
+      local: false
+      project_ref: "staging-xxxxx"
+    flutter:
+      flavor: "staging"
+      constants:
+        USE_LOCALHOST: false
+        IS_INTERNAL: true
+        
+  production:
+    firebase:
+      emulator: false
+      project: "homii-world-prod"
+    supabase:
+      local: false  
+      project_ref: "prod-xxxxx"
+    flutter:
+      flavor: "production"
+      constants:
+        USE_LOCALHOST: false
+        IS_INTERNAL: false
+```
+
+### 環境切り替えスクリプト
+```bash
+#!/bin/bash
+# switch-environment.sh
+
+ENV=$1
+
+case $ENV in
+  "dev")
+    echo "Switching to Development environment..."
+    # Firebase
+    firebase use homii-world-dev
+    # Supabase
+    supabase link --project-ref local
+    # Flutter
+    echo "DEV" > flutter-app/.env
+    ;;
+  "staging")
+    echo "Switching to Staging environment..."
+    firebase use homii-world-staging
+    supabase link --project-ref staging-xxxxx
+    echo "STAGING" > flutter-app/.env
+    ;;
+  "prod")
+    echo "Switching to Production environment..."
+    firebase use homii-world-prod
+    supabase link --project-ref prod-xxxxx
+    echo "PROD" > flutter-app/.env
+    ;;
+esac
+
+echo "Environment switched to: $ENV"
+```
+
+## 🤖 AI向けMCP活用パターン
+
+### 1. Serena活用（コード解析）
+```markdown
+## コード調査プロンプト
+
+Serena MCPを使用して、既存の認証実装を調査します。
+
+1. 認証関連のシンボル検索
+   - `AuthService` クラスの定義と使用箇所
+   - `signIn` メソッドの実装詳細
+   - 認証プロバイダーの構造
+
+2. 依存関係の分析
+   - 認証サービスを使用しているコンポーネント
+   - 認証状態に依存する画面
+
+3. リファクタリング提案
+   - 改善可能な箇所の特定
+   - より良いパターンの提案
+```
+
+### 2. Linear活用（タスク管理）
+```typescript
+// AI用Linearタスク管理ヘルパー
+class AILinearHelper {
+  // 自分の担当タスク取得
+  async getMyTasks(aiRole: string): Promise<Issue[]> {
+    return await linear.listIssues({
+      filter: {
+        labels: { name: { contains: `AI-Assignee: ${aiRole}` } },
+        state: { type: { in: ["unstarted", "started"] } },
+      },
+      orderBy: "priority",
+    });
+  }
+  
+  // 進捗報告
+  async reportProgress(issueId: string, progress: ProgressReport) {
+    await linear.createComment({
+      issueId,
+      body: formatProgressReport(progress),
+    });
+    
+    if (progress.blockers.length > 0) {
+      await linear.updateIssue({
+        id: issueId,
+        labelIds: [...currentLabels, "blocked"],
+      });
+    }
+  }
+  
+  // タスク完了
+  async completeTask(issueId: string, summary: CompletionSummary) {
+    await linear.updateIssue({
+      id: issueId,
+      stateId: "done-state-id",
+    });
+    
+    await linear.createComment({
+      issueId,
+      body: formatCompletionSummary(summary),
+    });
+  }
+}
+```
+
+### 3. Airtable活用（仕様管理）
+```typescript
+// 要件・仕様取得ヘルパー
+class AIAirtableHelper {
+  // 機能要件取得
+  async getFeatureRequirements(featureName: string) {
+    const records = await airtable.searchRecords({
+      baseId: REQUIREMENTS_BASE_ID,
+      tableId: "Features",
+      searchTerm: featureName,
+    });
+    
+    return records.map(r => ({
+      id: r.fields.requirement_id,
+      description: r.fields.description,
+      priority: r.fields.priority,
+      acceptance_criteria: r.fields.acceptance_criteria,
+    }));
+  }
+  
+  // API仕様取得
+  async getAPISpecification(endpoint: string) {
+    const records = await airtable.listRecords({
+      baseId: SPECS_BASE_ID,
+      tableId: "API_Endpoints",
+      filterByFormula: `{endpoint} = '${endpoint}'`,
+    });
+    
+    return {
+      request: JSON.parse(records[0].fields.request_schema),
+      response: JSON.parse(records[0].fields.response_schema),
+      validation: records[0].fields.validation_rules,
+    };
+  }
+}
+```
+
+### 4. GitHub活用（コード管理）
+```typescript
+// AI用GitHub操作ヘルパー
+class AIGitHubHelper {
+  // PR作成
+  async createPR(feature: FeatureImplementation) {
+    // ブランチ作成
+    await github.createBranch({
+      owner: "homii-world",
+      repo: "homii-app",
+      branch: `feature/${feature.name}`,
+      from_branch: "main",
+    });
+    
+    // PR作成
+    const pr = await github.createPullRequest({
+      owner: "homii-world",
+      repo: "homii-app",
+      title: `feat: ${feature.title}`,
+      head: `feature/${feature.name}`,
+      base: "main",
+      body: this.generatePRDescription(feature),
+      draft: false,
+    });
+    
+    // Linear連携
+    await this.linkLinearIssue(pr.number, feature.linearIssueId);
+    
+    return pr;
+  }
+  
+  // コードレビュー依頼
+  async requestReview(prNumber: number, reviewers: string[]) {
+    await github.requestReviewers({
+      owner: "homii-world",
+      repo: "homii-app",
+      pull_number: prNumber,
+      reviewers: reviewers,
+    });
+  }
+}
+```
+
+## 📊 統合ダッシュボード概念
+
+### AIチーム活動ダッシュボード
+```typescript
+interface AITeamDashboard {
+  tasks: {
+    total: number;
+    inProgress: number;
+    completed: number;
+    blocked: number;
+    byRole: Record<string, TaskStats>;
+  };
+  
+  quality: {
+    codeHealth: {
+      lintErrors: number;
+      testCoverage: number;
+      buildStatus: "passing" | "failing";
+    };
+    reviewMetrics: {
+      openPRs: number;
+      avgReviewTime: number;
+      approvalRate: number;
+    };
+  };
+  
+  productivity: {
+    velocity: number;
+    cycleTime: number;
+    throughput: number;
+  };
+  
+  costs: {
+    firebase: {
+      functions: number;
+      storage: number;
+      total: number;
+    };
+    externalAPIs: {
+      googleMaps: number;
+      others: number;
+    };
+  };
+}
+```
+
+## 🚀 セットアップ手順
+
+### 1. 初期設定
+```bash
+# リポジトリクローン
+git clone https://github.com/homii-world/homii-app.git
+cd homii-app
+
+# 環境セットアップ
+./scripts/setup-ai-environment.sh
+
+# MCP設定確認
+cursor --list-mcp-tools
+```
+
+### 2. 認証設定
+```bash
+# 各サービスの認証
+linear auth login
+airtable auth setup
+github auth login
+supabase login
+firebase login
+```
+
+### 3. プロジェクト設定
+```bash
+# プロジェクト連携
+linear projects link --id "homii-world"
+airtable bases link --id "app_xxxxx"
+supabase link --project-ref "xxxxx"
+firebase use homii-world-dev
+```
+
+### 4. AI別初期化
+```markdown
+## 各AI初回起動時
+
+私は[役割名]として、Homii Worldプロジェクトの開発を開始します。
+
+初期設定:
+1. MCP連携確認
+2. 自分の役割とルール確認（.cursor/rules/roles/）
+3. 現在のタスク確認（Linear）
+4. 開発環境準備
+
+準備が完了したら、最優先タスクから作業を開始します。
+```
+
+## 📖 トラブルシューティング
+
+### MCP接続エラー
+```bash
+# 接続状態確認
+cursor mcp status
+
+# 再接続
+cursor mcp reconnect [tool-name]
+
+# ログ確認
+cursor mcp logs [tool-name]
+```
+
+### 環境不整合
+```bash
+# 環境リセット
+./scripts/reset-environment.sh
+
+# 設定再読み込み
+source .cursor/environments/config.sh
+```
+
+---
+
+**MCP統合方針**: 各AIが必要なツールに適切にアクセスでき、人間の介入なしに自律的に作業できる環境を構築。ツール間の連携を活用し、効率的な開発フローを実現します。

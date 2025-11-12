@@ -1,0 +1,7 @@
+# Hackathon Core Rules
+- 常に日本語で回答すること。
+- バックエンドは Firebase Functions v2（Callable のみ）+ Firestore を前提。
+- 認証は匿名のみ。クライアントは `ai_messages/{uid}/messages` を購読して通知表示。
+- データは `hackathon_*` 名前空間に保存。終了後にTTL/クリーンアップを実施。
+- API契約は `profileUpsert / joinEvent / getRecommendations / proposeConnection / respondConnection / listMyMatches` を厳守。
+- 期日優先。パフォーマンス最適化と本格監査は後回し。

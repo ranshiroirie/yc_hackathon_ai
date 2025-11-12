@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "homii-ai-companion",
+  "private_key_id": "2ede82f837b0c0a154a8eae63946e61b0f17001b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCTpq1vv0TCZrkm\nj8ZYB1XCB0tfZyMRP3JuVEstnXAkoEEpPV2blDgSzIRB/D7YcG71pntRU8jrGHWb\nvgCvn2ruE6RHWEZG9qmhIaB6kLrRt2BAlwx0Etax4C9JMxCH0lQMQiJUn1kC6lZO\ntNfyc3HxBC9voJUbEHEIbVJo1mN8sdF/6PP5r3eDUFAtzZ/P6p+8dukzAcKsWTHX\n+4D6nyyKm94dBKnIcuT+fZj6tpbWVLcxg3aOUrfTqkzWPk/+weFqFiOLNnEM0SVf\n2sqwwJ93cDVAF+q0wAf0DGMO2sc21v0tMYePPSNfLmyKgJbAfuOFJalO9NGbHR1L\no/PI+GuRAgMBAAECggEANf7BtTh2rjr/oaT5bU69Y1fkje57Kf8QW12TIorNLG+4\ndJre5RrGiMVm5nSXDPLM+SOZPEwOET9gHwTUXmVHpuni7T5QcPoaXXUdKUVNNI1B\nc01pvfb3sZPg5v14IZteph73TAf79q94wY6r3Buwwul7aXCJppyUIXdNKE6ikkIs\nsUNNqZK+O7cF2zSYM2/XRwGzC5cZzaIlktMtkzGex3UWsAnYH+1EH8s2G5/diuE+\n2Y7tAXDA0oCSf7BVQw3xZFfEkxn+aKgpssKzJCvHYzAMxmR0Lh8I7j3x3Ipky06W\nHVuTIh8WuTBSnT2Qq/Ubf9ZcVcj0GIc1ZPyPgM6EMwKBgQDHzh5PWnJUVMYXojj8\nQ9Czik9NgDru/QKsEr3sz0NokGTyPuOUGM8wVnzdZbCphhWEBkDR4CTaC3YoeCyq\nWJcWOdorxfBIggPCB9Z3DkM6cevyVMIONASQY0YRxLFYasZcJV8MXXDgWBpvt+HD\nsm3bCIbkjb/9sCEAtMSvUpyj8wKBgQC9LX1XXmyMt1onLK+fG9Zi1nr3d0zStH4M\nKTkGL5YWVN7YSXkwoKIOCf9VojGeQwfbLn0SIW48bcOO6HYTZe0Mpxo7IUjQCHWo\nDyixc8/re0l7KIyPmD7YNEHt0VLjx5R4+alnwzxh9WIwg/sQ7YAyYAxoY7qStmFQ\nqlAmgzrHawKBgQCBHfrKTumZA5trhGKM6ooAq/1pWNc8v3WtmwLu+FVYSg9h2DAa\n8Rla5FkWfXN3aXWX9q6GsfE+kq+NoXNDtbIVI9eP9/657ILfLU9zal0ZdKsD06//\nm6/jWrPaIaB1QbLjsybEB9I8t9KFpW+YlkKVi+IX6l5KYzpAiZCct6cP7wKBgQCI\ny4IdUVwxDMyWE0wTQ6/s3KcilxPoMTgMVyqy/GoNT+WshMSrkxxcBoKqS5SRmmrt\n5VnvaFksPTrx9cqcEFIvmg3vwAvE0rkxg3SrjNFGuGnUMughVbfr4y3haEIGD+We\n7PnA3H6nXydXabh87yCKTMXsHmFlgZgxGlbG4pH4bQKBgQDEIAceh7qHibJ8uIZL\nby8MKcVouQd+tW2OX21xLRZx1jm2zC+X3ofb7eNAIZmi5RKa5ZlgZ7gfpiTGPTx7\nwXSForje6ZlridyDqbWiA34nOsOgzN9Kh4hYI0BQTuRVyX3amcOKkCaUA3S4S90u\nDz6hyySD9GaVC8KtmeuWLxx/qg==\n-----END PRIVATE KEY-----\n",
+  "client_email": "local-script@homii-ai-companion.iam.gserviceaccount.com",
+  "client_id": "108550059793449123093",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/local-script%40homii-ai-companion.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

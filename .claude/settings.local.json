@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m json.tool:*)",
+      "Bash(/dev/null)",
+      "Bash(cat:*)",
+      "Bash(python3:*)",
+      "Bash(flutter --version:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

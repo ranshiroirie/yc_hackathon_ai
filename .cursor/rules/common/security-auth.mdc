@@ -1,0 +1,4 @@
+# セキュリティ・認証ルール（簡易）
+- すべての Callable で `context.auth` と `sign_in_provider==='anonymous'` を検証。
+- Firestore ルールは「匿名必須・期間限定・`hackathon_*`のみ許可」。
+- App Check は任意（β）。必要になったら Functions 入口で追加検証可能な設計に。

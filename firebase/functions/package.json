@@ -1,0 +1,28 @@
+{
+  "name": "hackathon-functions",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "22"
+  },
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf lib",
+    "lint": "echo 'skip lint for hackathon'",
+    "dev": "tsc -w -p tsconfig.json",
+    "seed:profile-predata": "npm run build && node lib/scripts/seedProfilePredata.js"
+  },
+  "dependencies": {
+    "csv-parse": "^5.6.0",
+    "dotenv": "^17.2.3",
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^6.1.1",
+    "node-fetch": "^3.3.2",
+    "openai": "^4.67.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

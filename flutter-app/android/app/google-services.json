@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "643243619301",
+    "project_id": "homii-ai-companion",
+    "storage_bucket": "homii-ai-companion.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:643243619301:android:cfc8b7c45531708896b50c",
+        "android_client_info": {
+          "package_name": "global.homii.ai.event.companion.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDq3cbcgfS8FYAnmFFFs1h1corqodi8Z4w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

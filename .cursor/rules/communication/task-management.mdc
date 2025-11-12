@@ -1,0 +1,344 @@
+# AI開発チーム タスク管理システム
+
+## 🎯 タスク管理概要
+
+### 統合ツール
+- **Linear**: メインのタスク管理（MCP連携）
+- **GitHub Projects**: コード連携（MCP連携）
+- **Cursor Todo**: AIセッション内タスク
+- **Airtable**: 要件・仕様マスタ（MCP連携）
+
+## 📋 Linear タスク構造
+
+### プロジェクト階層
+```
+Homii World Development
+├── 🎯 Epic（エピック）
+│   ├── 📱 Mobile App Features
+│   ├── 🔥 Backend Services
+│   ├── 🗄️ Database Design
+│   └── 🏗️ Infrastructure
+├── 📝 Issue（イシュー）
+│   ├── Feature（機能）
+│   ├── Bug（バグ）
+│   ├── Task（タスク）
+│   └── Improvement（改善）
+└── 🏷️ Label（ラベル）
+    ├── Component（flutter/firebase/supabase）
+    ├── Priority（urgent/high/medium/low）
+    ├── Status（backlog/todo/in-progress/review/done）
+    └── AI-Assignee（architect/flutter-eng/firebase-eng/supabase-eng）
+```
+
+### イシューテンプレート
+
+#### 機能開発イシュー
+```markdown
+## 概要
+[機能の簡潔な説明]
+
+## 要件
+- [ ] FR-001: [機能要件]
+- [ ] NFR-001: [非機能要件]
+
+## 設計リンク
+- 要件定義: [Airtable/Doc Link]
+- 設計書: [System-doc Link]
+- UI/UX: [Figma Link]
+
+## 実装タスク
+- [ ] 設計レビュー @system-architect
+- [ ] Flutter実装 @flutter-engineer
+- [ ] API実装 @firebase-engineer  
+- [ ] DB実装 @supabase-engineer
+- [ ] 統合テスト @system-architect
+- [ ] リリース準備 @engineering-manager
+
+## 受入条件
+- [ ] [テスト可能な条件1]
+- [ ] [テスト可能な条件2]
+
+## 見積もり
+- 設計: Xpt
+- 実装: Ypt
+- テスト: Zpt
+```
+
+## 🤖 AI-Linear連携パターン
+
+### 1. タスク作成（マネージャー/アーキテクト）
+```typescript
+// Linear MCP経由でのイシュー作成
+const createFeatureIssue = async () => {
+  const issue = await linear.createIssue({
+    title: "[機能名] 実装",
+    description: issueTemplate,
+    teamId: "homii-world-dev",
+    projectId: "mobile-app-features",
+    priority: 2, // High
+    labels: ["feature", "flutter", "firebase"],
+    assigneeId: null, // AIは直接アサインできない
+  });
+  
+  // サブイシュー作成
+  await createSubIssues(issue.id);
+};
+```
+
+### 2. タスク参照（各エンジニア）
+```markdown
+## 作業開始時のAIプロンプト
+
+私は[役割]として作業を開始します。
+
+Linear MCPで以下を確認してください：
+1. 私のラベル（AI-Assignee: [役割]）が付いたイシュー
+2. ステータスが "todo" または "in-progress" のもの
+3. 優先度順にリスト
+
+その後、最優先タスクの詳細を取得し、実装計画を立てます。
+```
+
+### 3. 進捗更新（各エンジニア）
+```typescript
+// 進捗更新パターン
+const updateProgress = async (issueId: string) => {
+  // ステータス更新
+  await linear.updateIssue({
+    id: issueId,
+    stateId: "in-progress-state-id",
+  });
+  
+  // コメント追加
+  await linear.createComment({
+    issueId: issueId,
+    body: `
+## 進捗報告 - ${new Date().toISOString()}
+
+### 完了項目
+- ✅ モデル定義実装
+- ✅ Provider基本実装
+
+### 作業中
+- 🔄 UI実装（70%）
+
+### ブロッカー
+なし
+
+### 次のステップ
+- UI完成
+- テスト作成
+    `,
+  });
+};
+```
+
+### 4. レビュー依頼（各エンジニア → アーキテクト）
+```markdown
+## レビュー依頼コメント
+
+@system-architect
+
+実装完了しました。レビューをお願いします。
+
+### 実装内容
+- PR: #123
+- 変更ファイル: 15
+- テストカバレッジ: 85%
+
+### 確認ポイント
+- アーキテクチャ準拠性
+- パフォーマンス最適化
+- エラーハンドリング
+
+### 動作確認
+- [x] ローカル環境
+- [x] エミュレータ環境
+- [ ] ステージング環境（レビュー後）
+```
+
+## 📊 トレーサビリティマトリクス
+
+### 要件 → 実装 → テストの紐付け
+
+```mermaid
+graph LR
+    A[要件 REQ-001] --> B[設計 DESIGN-001]
+    B --> C[Linear Issue #123]
+    C --> D[PR #456]
+    C --> E[PR #457]
+    D --> F[Test Suite 1]
+    E --> G[Test Suite 2]
+    
+    style A fill:#f9f
+    style B fill:#bbf
+    style C fill:#bfb
+    style D fill:#fbf
+    style E fill:#fbf
+    style F fill:#ff9
+    style G fill:#ff9
+```
+
+### トレーサビリティ記録
+```yaml
+requirement: REQ-001-user-authentication
+  design: DESIGN-001-auth-architecture
+    linear_issues:
+      - id: HOM-123
+        title: "認証フロー実装"
+        components: ["flutter", "firebase"]
+    pull_requests:
+      - number: 456
+        title: "feat: implement auth service"
+        files: ["lib/services/auth_service.dart"]
+      - number: 457  
+        title: "feat: add auth UI screens"
+        files: ["lib/views/auth/"]
+    tests:
+      - type: unit
+        files: ["test/services/auth_service_test.dart"]
+      - type: integration
+        files: ["integration_test/auth_flow_test.dart"]
+```
+
+## 🔄 自動化ワークフロー
+
+### GitHub Actions連携
+```yaml
+name: Linear Integration
+
+on:
+  pull_request:
+    types: [opened, closed]
+
+jobs:
+  update-linear:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update Linear Issue
+        uses: linear-app/linear-action@v1
+        with:
+          api-key: ${{ secrets.LINEAR_API_KEY }}
+          action: |
+            if: ${{ github.event.action == 'opened' }}
+            then:
+              - find-issue-by-branch
+              - add-comment: "PR opened: #${{ github.event.number }}"
+              - update-status: "in-review"
+            elif: ${{ github.event.action == 'closed' && github.event.pull_request.merged }}
+            then:
+              - update-status: "done"
+              - add-comment: "PR merged: #${{ github.event.number }}"
+```
+
+### 定期レポート生成
+```typescript
+// 週次レポート自動生成
+const generateWeeklyReport = async () => {
+  const completedIssues = await linear.listIssues({
+    filter: {
+      state: { name: { eq: "Done" } },
+      completedAt: { gte: lastWeek },
+    },
+  });
+  
+  const inProgressIssues = await linear.listIssues({
+    filter: {
+      state: { name: { in: ["In Progress", "In Review"] } },
+    },
+  });
+  
+  const report = formatReport({
+    completed: completedIssues,
+    inProgress: inProgressIssues,
+    velocity: calculateVelocity(completedIssues),
+  });
+  
+  return report;
+};
+```
+
+## 📈 メトリクス追跡
+
+### 開発メトリクス
+```typescript
+interface DevelopmentMetrics {
+  velocity: {
+    current: number;      // 今週のストーリーポイント
+    average: number;      // 3週間平均
+    trend: "up" | "down" | "stable";
+  };
+  cycleTime: {
+    average: number;      // 平均サイクルタイム（時間）
+    byComponent: {
+      flutter: number;
+      firebase: number;
+      supabase: number;
+    };
+  };
+  quality: {
+    bugRate: number;      // バグ発生率
+    reworkRate: number;   // 手戻り率
+    testCoverage: number; // テストカバレッジ
+  };
+}
+```
+
+### AIパフォーマンスメトリクス
+```typescript
+interface AIPerformanceMetrics {
+  taskCompletion: {
+    total: number;        // 総タスク数
+    completed: number;    // 完了タスク数
+    accuracy: number;     // 正確性（レビュー通過率）
+  };
+  efficiency: {
+    avgTimePerTask: number;     // タスクあたり平均時間
+    automationRate: number;     // 自動化率
+    humanInterventionRate: number; // 人的介入率
+  };
+  learning: {
+    errorRate: number;          // エラー率の推移
+    improvementRate: number;    // 改善率
+  };
+}
+```
+
+## 🎮 AIタスク実行プロンプト
+
+### 日次タスク確認
+```markdown
+## AIエンジニア 日次スタートアップ
+
+私は[役割]として本日の作業を開始します。
+
+1. Linear MCPで自分の担当タスクを確認
+2. 優先度の高いものから作業開始
+3. 各タスクで以下を実行：
+   - 要件・設計の確認
+   - 実装計画の立案
+   - 実装・テスト
+   - 進捗報告
+
+```
+
+### タスク完了時
+```markdown
+## タスク完了処理
+
+タスク[Linear ID]を完了しました。
+
+1. Linear MCPでステータスを "Done" に更新
+2. 実装内容のサマリーをコメント
+3. 関連PRのリンクを追加
+4. 次のタスクを確認
+
+トレーサビリティ情報：
+- 要件: [REQ-XXX]
+- PR: [#YYY]
+- テスト: [実行結果]
+```
+
+---
+
+**タスク管理方針**: Linear MCPを中心に、要件から実装、テストまでの完全なトレーサビリティを維持。AIの作業も人間と同様に透明性高く管理し、継続的な改善につなげます。

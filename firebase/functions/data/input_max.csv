@@ -1,0 +1,32 @@
+User Name,Linkedin,Judges,Profile Intro by Team,Profile Intro by Team（日本語）,Dammy Data　What I'm good at / People I’d like to meet（得意なこと、会いたい人）,Real Data What I'm good at / People I’d like to meet（得意なこと、会いたい人）,メールアドレス
+Max Prilutskiy,https://www.linkedin.com/in/maxprilutskiy/,Yes,"Founder and CEO focused on developer-first AI localization: Max co‑founded Lingo.dev (formerly Replexica) to make localization part of the developer workflow, building an AI Localization Engine and an open-source Compiler that translates UI text at build-time while preserving code semantics and UI constraints. He led the company through YC (F24) and a $4.2M seed round as it gained early customers (e.g., Cal.com, Mistral AI) and integrated with CI/CD and Git workflows. 
+Hands‑on technical product builder with an engineering-first approach: Max publishes technical writeups and open-source tools (e.g., the Lingo.dev Compiler and Change Report GitHub Action) that reveal deep familiarity with AST-based code analysis, HMR compatibility, caching strategies, and orchestration of multiple LLMs for context-aware translation. 
+Repeat founder and operator who ships lean: prior to Lingo.dev he built Notionlytics (a Notion analytics product) and announced its acquisition; earlier product/engineering roles (including at Typeform) shaped his sensitivity to localization as a recurring product bottleneck. 
+Community and open-source orientation: he actively shares technical lessons publicly (Dev.to, Medium, Substack), runs/promotes hackathons, and maintains a visible GitHub presence — signaling both product leadership and a preference for community-driven adoption.","開発者ファーストのAIローカリゼーションに注力する創業者兼CEO：Maxは、ローカリゼーションを開発者ワークフローの一部にすることを目的に、Lingo.dev（旧Replexica）の共同創業者を務めました。AIローカリゼーションエンジンと、コードセマンティクスとUI制約を維持しながらビルド時にUIテキストを翻訳するオープンソースコンパイラを開発しました。彼は、YC（F24）と420万ドルのシードラウンドを経て、Cal.com、Mistral AIなどの初期顧客を獲得し、CI/CDおよびGitワークフローとの統合を実現しました。
+エンジニアリングファーストのアプローチを採用した実践的な技術製品開発者：Maxは、ASTベースのコード分析、HMR互換性、キャッシュ戦略、コンテキストアウェア翻訳のための複数LLMのオーケストレーションに関する深い知識を示す技術記事やオープンソースツール（Lingo.devコンパイラや変更レポートGitHub Actionなど）を公開しています。
+リーンなリリースを繰り返す創業者兼運営者。Lingo.dev以前はNotionlytics（Notionの分析製品）を開発し、その買収を発表しました。それ以前のプロダクト/エンジニアリング業務（Typeformを含む）での経験から、ローカリゼーションが製品のボトルネックとして頻繁に発生し、その問題に敏感になりました。
+コミュニティとオープンソースへの関心。Dev.to、Medium、Substackなど、様々なプラットフォームで技術的な教訓を積極的に公開し、ハッカソンを運営・推進し、GitHubで積極的に活動しています。これは、プロダクトリーダーシップとコミュニティ主導の採用への強い関心の表れです。","Strengths
+・Founder & CEO building developer-first AI localization workflows (Lingo.dev / YC F24 / $4.2M seed)
+・Created an AI Localization Engine + open-source Compiler that translates UI text at build-time while preserving code structure
+・Hands-on technical product builder with deep knowledge of AST parsing, HMR compatibility, caching, and multi-LLM orchestration
+・Repeat founder who ships lean (previously founded Notionlytics → acquired) with experience at Typeform shaping localization insight
+・Strong community and open-source orientation, publishing technical writeups, GitHub projects, and hackathon involvement
+
+People He’d Want to Meet
+・Founders and CTOs building global-ready SaaS / developer tools / AI infra
+・Engineering leaders who want i18n / localization solved at the code level, not as an afterthought
+・VCs and angels investing in AI developer tooling, CI/CD workflows, and platform extensibility
+・Open-source maintainers and dev-community organizers who value transparent and collaborative product adoption
+・Companies expanding to multi-language markets and feeling pain around UI text management + translation workflow","強み
+・開発者中心のAIローカリゼーションワークフローを構築する創業者兼CEO（Lingo.dev / YC F24 / シード投資額420万ドル）
+・コード構造を維持しながらビルド時にUIテキストを翻訳するAIローカリゼーションエンジンとオープンソースコンパイラを開発
+・ASTパース、HMR互換性、キャッシュ、マルチLLMオーケストレーションに関する深い知識を持つ、実践的な技術プロダクトビルダー
+・リーンなリリースを繰り返す創業者（以前はNotionlyticsを創業→買収）であり、Typeformでローカリゼーションに関する知見を培った経験を持つ
+・強力なコミュニティとオープンソース志向を持ち、技術記事、GitHubプロジェクトを公開し、ハッカソンにも参加
+
+会いたい人
+・グローバル対応のSaaS、開発者ツール、AIインフラを構築する創業者およびCTO
+・後付けではなく、コードレベルでi18n/ローカリゼーションを解決したいエンジニアリングリーダー
+・AI開発者ツール、CI/CDに投資するVCおよびエンジェル投資家ワークフロー、プラットフォームの拡張性
+・透明性と協調的な製品導入を重視するオープンソースのメンテナーおよび開発コミュニティのオーガナイザー
+・多言語市場への進出を進め、UIテキスト管理と翻訳ワークフローに課題を感じている企業",

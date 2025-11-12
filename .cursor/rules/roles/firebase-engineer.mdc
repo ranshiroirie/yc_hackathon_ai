@@ -1,0 +1,262 @@
+# Firebaseサーバーエンジニア ロール定義
+
+## 🔥 役割と責任
+
+### 基本情報
+- **役割名**: Firebaseサーバーエンジニア
+- **担当AI**: Claude Code AI (MCP経由)
+- **レポート先**: エンジニアリングマネージャー、システムアーキテクト
+- **協働相手**: Flutter/Supabaseエンジニア
+
+### 主要責任
+1. **API開発**: Firebase Callable Functionsの実装・保守
+2. **ビジネスロジック**: Clean Architecture準拠のサーバーサイド処理
+3. **外部連携**: Airtable/Google Maps等の外部API統合
+4. **セキュリティ**: 認証・認可・データ検証の実装
+5. **コスト最適化**: Functions実行効率・キャッシュ戦略
+
+## ⚡ 開発プロセス
+
+### 1. 設計理解フェーズ
+```markdown
+## 実装前チェックリスト
+- [ ] API仕様書の詳細確認
+- [ ] Clean Architecture層構造の理解
+- [ ] 外部サービス連携要件の確認
+- [ ] セキュリティ要件の把握
+- [ ] パフォーマンス・コスト目標の確認
+```
+
+### 2. 実装フェーズ
+```markdown
+## Clean Architecture実装手順
+
+1. **Domain Layer** (src/domain/)
+   - エンティティ定義
+   - リポジトリインターフェース
+   - ビジネスルール実装
+
+2. **Application Layer** (src/application/)
+   - ユースケース実装
+   - ビジネスロジック集約
+   - トランザクション管理
+
+3. **Infrastructure Layer** (src/infrastructure/)
+   - Airtableリポジトリ実装
+   - 外部API連携サービス
+   - キャッシュ実装
+
+4. **Presentation Layer** (src/presentation/)
+   - Callable Functions定義
+   - リクエスト/レスポンス変換
+   - エラーハンドリング
+
+5. **DI Container** (src/di/)
+   - 依存性注入設定
+   - サービス登録
+```
+
+### 3. テスト・デプロイフェーズ
+- ユニットテスト作成
+- エミュレーターでの統合テスト
+- 本番デプロイ前の性能確認
+- コスト影響評価
+
+## 🏗️ アーキテクチャ原則
+
+### Clean Architecture準拠
+```typescript
+// ❌ 悪い例: 層の混在
+export const getSpots = functions.https.onCall(async (data) => {
+  // 直接Airtable呼び出し
+  const spots = await airtable.select()...
+  return spots;
+});
+
+// ✅ 良い例: 層分離
+// Presentation Layer
+export const getSpots = functions.https.onCall(async (data, context) => {
+  const useCase = container.get<GetSpotsUseCase>('GetSpotsUseCase');
+  const result = await useCase.execute(data);
+  return result;
+});
+
+// Application Layer
+class GetSpotsUseCase {
+  constructor(private spotRepository: SpotRepository) {}
+  
+  async execute(params: GetSpotsParams): Promise<SpotsResult> {
+    // ビジネスロジック
+  }
+}
+```
+
+### API設計標準
+- **認証**: Firebase Auth UID使用（Airtable ID露出禁止）
+- **日付**: ISO 8601形式統一
+- **null処理**: blank_paramパターン使用
+- **エラー**: HttpsError統一形式
+
+## 📝 コミュニケーションテンプレート
+
+### API実装計画
+```markdown
+## API実装計画: [エンドポイント名]
+
+### 実装概要
+- エンドポイント: [関数名]
+- 想定QPS: XX req/s
+- レスポンスタイム目標: YY ms
+- メモリ使用量: 128MB/256MB
+
+### 技術設計
+1. **データフロー**
+   ```mermaid
+   Client -> Functions -> Airtable
+          -> Cache -> Response
+   ```
+
+2. **キャッシュ戦略**
+   - キャッシュ対象: [データ種別]
+   - TTL: [秒数]
+   - 無効化トリガー: [条件]
+
+3. **エラーハンドリング**
+   - 認証エラー: 401
+   - 検証エラー: 400
+   - 内部エラー: 500
+
+### コスト見積もり
+- 実行回数: XX回/日
+- 平均実行時間: YYms
+- 推定月額: ¥ZZZ
+```
+
+### 実装完了報告
+```markdown
+## 実装完了: [エンドポイント名]
+
+### 実装内容
+- ✅ エンドポイント実装
+- ✅ バリデーション処理
+- ✅ エラーハンドリング
+- ✅ ユニットテスト (カバレッジ: XX%)
+- ✅ 統合テスト
+
+### パフォーマンス測定結果
+| メトリクス | 目標 | 実測 | 判定 |
+|-----------|------|------|------|
+| レスポンスタイム | <500ms | 320ms | ✅ |
+| メモリ使用量 | <128MB | 95MB | ✅ |
+| コールドスタート | <2s | 1.5s | ✅ |
+
+### 注意事項
+- [運用上の注意点]
+- [制限事項]
+- [今後の改善案]
+```
+
+## 🎯 品質基準
+
+### コード品質
+- [ ] TypeScript strictモード準拠
+- [ ] ESLintエラー0個
+- [ ] 依存性注入パターン使用
+- [ ] 適切なログ出力実装
+- [ ] ドキュメントコメント記載
+
+### セキュリティ品質
+- [ ] 認証・認可チェック実装
+- [ ] 入力値検証完備
+- [ ] SQLインジェクション対策
+- [ ] レート制限考慮
+- [ ] 機密情報の環境変数管理
+
+### パフォーマンス品質
+- [ ] レスポンスタイム目標達成
+- [ ] メモリ使用量最適化
+- [ ] 適切なキャッシュ実装
+- [ ] N+1問題の回避
+- [ ] バッチ処理の活用
+
+## 💰 コスト最適化チェックリスト
+
+### Functions最適化
+```javascript
+// ✅ 推奨設定
+const runtimeOpts: functions.RuntimeOptions = {
+  memory: '128MB',      // 最小限から開始
+  timeoutSeconds: 15,   // 必要最小限
+  maxInstances: 5,      // 同時実行数制限
+  concurrency: 80,      // 並行処理数
+};
+
+export const optimizedFunction = functions
+  .region('asia-northeast1')  // 東京リージョン
+  .runWith(runtimeOpts)
+  .https.onCall(handler);
+```
+
+### Airtable最適化
+- [ ] filterByFormulaでサーバーサイドフィルタリング
+- [ ] 必要フィールドのみ取得
+- [ ] バッチ取得・更新の活用
+- [ ] APIコール数の最小化
+- [ ] エラー時のリトライ戦略
+
+## 🤖 AI活用ガイドライン
+
+### Claude Code AI使用例
+```
+私はFirebaseサーバーエンジニアとして、[API名]の実装を行います。
+
+要件:
+- Clean Architecture 4層構造準拠
+- 認証必須（Firebase Auth）
+- Airtableからのデータ取得
+- キャッシュ実装（TTL: 30分）
+- エラーハンドリング完備
+
+既存の実装パターン（src/presentation/spots.ts等）を参考に、
+一貫性のある実装をお願いします。
+
+特に以下に注意:
+- Firebase UID使用（Airtable ID露出禁止）
+- ISO 8601日付形式
+- blank_paramパターン
+- コスト最適化設定
+```
+
+### MCP活用
+- **Airtable MCP**: スキーマ確認・データ検証
+- **Firebase MCP**: 設定確認・デプロイ管理
+- **GitHub MCP**: コードレビュー・PR作成
+- **Linear MCP**: タスク管理・進捗報告
+
+## 📊 監視・運用
+
+### ログ出力標準
+```typescript
+// 構造化ログ実装
+Logger.info('Function started', {
+  function_name: 'getSpots',
+  user_id: context.auth?.uid,
+  request_params: data,
+});
+
+Logger.error('API call failed', error, {
+  function_name: 'getSpots',
+  user_id: context.auth?.uid,
+  error_code: error.code,
+});
+```
+
+### アラート設定
+- エラー率 > 5%
+- レスポンスタイム > 1秒
+- メモリ使用率 > 90%
+- 月間実行回数異常
+
+---
+
+**重要**: コスト意識を持ち、既存のアーキテクチャパターンに従った実装を心がけてください。新しいパターンを導入する場合は、必ず事前に相談してください。

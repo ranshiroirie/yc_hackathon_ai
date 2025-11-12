@@ -1,0 +1,379 @@
+# Cursor ↔ Claude Code 対話システム
+
+## 🎯 対話による仕様・設計精度向上
+
+### 基本コンセプト
+- **Cursor（システムアーキテクト）**: 全体設計・要件整理・技術判断
+- **Claude Code（各エンジニア）**: 実装詳細・技術検証・品質チェック
+- **対話プロセス**: 段階的な仕様詳細化と設計検証
+
+## 🔄 対話パターン
+
+### Pattern 1: 要件詳細化対話
+
+#### Phase 1: 初期要件提示（Cursor → Claude Code）
+```markdown
+## 要件詳細化セッション開始
+
+@claude-code-flutter-engineer
+
+新機能「スポット詳細画面のリアルタイム更新」の実装を検討します。
+
+### 初期要件
+- ユーザーがスポット詳細を見ている間、他のユーザーの評価・コメントがリアルタイムで更新される
+- 通信コストを最小限に抑える
+- UXを損なわない更新頻度
+
+### 技術制約
+- Flutter WebSocket or Server-Sent Events
+- Firebase Functions経由でのデータ取得
+- 既存のキャッシュ戦略との整合性
+
+### 質問・検討事項
+1. リアルタイム更新の実装方式として最適なアプローチは？
+2. 更新頻度とUXのバランスをどう取るか？
+3. 既存のSpotDetailProviderとの統合方法は？
+
+技術的な観点から詳細化をお願いします。
+```
+
+#### Phase 2: 技術検証・提案（Claude Code → Cursor）
+```markdown
+## 技術検証結果・実装提案
+
+@cursor-system-architect
+
+要件を技術的に検証し、実装提案をします。
+
+### 技術方式比較
+| 方式 | メリット | デメリット | 推奨度 |
+|------|----------|------------|--------|
+| WebSocket | 双方向・低レイテンシ | 接続管理複雑 | ⭐⭐⭐ |
+| SSE | シンプル・HTTP/2対応 | 一方向のみ | ⭐⭐⭐⭐ |
+| Polling | 実装簡単 | 無駄な通信 | ⭐⭐ |
+
+### 推奨アーキテクチャ
+```dart
+// リアルタイム更新Provider
+class SpotDetailRealtimeProvider extends StateNotifier<SpotDetailState> {
+  final SpotDetailRepository _repository;
+  final RealtimeService _realtimeService;
+  StreamSubscription? _subscription;
+  
+  // SSE接続でリアルタイム更新
+  void startRealtimeUpdates(String spotId) {
+    _subscription = _realtimeService
+      .subscribeToSpotUpdates(spotId)
+      .listen(_handleSpotUpdate);
+  }
+}
+```
+
+### 懸念事項・要確認
+1. **バッテリー消費**: 長時間接続の影響は？
+2. **スケーラビリティ**: 同時接続数の上限は？
+3. **エラーハンドリング**: 接続断時の復旧戦略は？
+
+これらの点について、システム全体の観点からご判断をお願いします。
+```
+
+#### Phase 3: 設計調整・決定（Cursor → Claude Code）
+```markdown
+## 設計決定・実装指示
+
+@claude-code-flutter-engineer
+
+技術提案を検討し、以下の方針で進めます。
+
+### 採用方式
+**Server-Sent Events (SSE)** を採用
+- 理由: シンプルさとHTTP/2対応のバランス
+- Firebase Functions側でSSEエンドポイント実装
+
+### 実装仕様詳細
+1. **接続管理**
+   - 画面表示時に接続開始
+   - バックグラウンド移行時は接続維持（5分間）
+   - アプリ終了時は即座に切断
+
+2. **更新頻度制御**
+   - サーバー側で最大1秒間隔に制限
+   - クライアント側でデバウンス処理（500ms）
+
+3. **エラーハンドリング**
+   - 接続断時は指数バックオフで再接続
+   - 3回失敗後はポーリングにフォールバック
+
+### 実装優先順位
+1. SSEサービス基盤実装
+2. SpotDetailProvider統合
+3. エラーハンドリング・テスト
+4. パフォーマンス最適化
+
+実装詳細設計をお願いします。
+```
+
+### Pattern 2: 実装レビュー対話
+
+#### Phase 1: 実装完了報告（Claude Code → Cursor）
+```markdown
+## 実装完了・レビュー依頼
+
+@cursor-system-architect
+
+スポット詳細リアルタイム更新機能の実装が完了しました。
+
+### 実装内容
+- **ファイル**: `lib/services/realtime_service.dart`
+- **Provider**: `lib/providers/spot_detail_realtime_provider.dart`
+- **UI統合**: `lib/views/spot/spot_detail_screen.dart`
+
+### 実装した機能
+1. ✅ SSE接続管理
+2. ✅ 自動再接続機能
+3. ✅ バックグラウンド対応
+4. ✅ エラーハンドリング
+5. ✅ ユニットテスト（カバレッジ85%）
+
+### パフォーマンス測定結果
+- 接続確立時間: 平均200ms
+- メモリ使用量: +5MB（許容範囲内）
+- バッテリー影響: 1時間で2%増（許容範囲内）
+
+### 懸念事項
+1. **同時接続数**: 現在の実装では制限なし
+2. **メモリリーク**: 長時間使用での検証が必要
+
+アーキテクチャ観点でのレビューをお願いします。
+```
+
+#### Phase 2: アーキテクチャレビュー（Cursor → Claude Code）
+```markdown
+## アーキテクチャレビュー結果
+
+@claude-code-flutter-engineer
+
+実装を確認しました。全体的に良い実装ですが、改善点があります。
+
+### ✅ Good Points
+- Clean Architectureに準拠した層分離
+- 適切なエラーハンドリング
+- 包括的なテストカバレッジ
+
+### ⚠️ 改善が必要な点
+
+1. **接続数制限の実装**
+   ```dart
+   // 現在
+   class RealtimeService {
+     final Map<String, StreamSubscription> _subscriptions = {};
+   }
+   
+   // 推奨
+   class RealtimeService {
+     static const int MAX_CONNECTIONS = 3;
+     final Map<String, StreamSubscription> _subscriptions = {};
+     
+     void subscribe(String channel) {
+       if (_subscriptions.length >= MAX_CONNECTIONS) {
+         _closeOldestConnection();
+       }
+       // ...
+     }
+   }
+   ```
+
+2. **メモリリーク対策**
+   - WeakReference使用を検討
+   - 定期的なガベージコレクション実行
+
+### 追加実装依頼
+1. 接続数制限機能
+2. メモリ使用量監視機能
+3. 統合テストの追加
+
+修正版の実装をお願いします。
+```
+
+### Pattern 3: 技術選定対話
+
+#### Phase 1: 技術選定課題提示（Cursor → Claude Code）
+```markdown
+## 技術選定相談
+
+@claude-code-firebase-engineer
+
+新機能「画像AI解析」の実装で技術選定に迷っています。
+
+### 要件
+- アップロードされた画像から自動でタグ生成
+- 月間10万枚の画像処理想定
+- レスポンス時間: 5秒以内
+- コスト上限: 月¥50,000
+
+### 選択肢
+1. **Google Cloud Vision API**
+   - 精度: 高
+   - コスト: $1.50/1000枚
+   - レスポンス: 2-3秒
+
+2. **AWS Rekognition**
+   - 精度: 中-高
+   - コスト: $1.00/1000枚
+   - レスポンス: 1-2秒
+
+3. **OpenAI GPT-4V**
+   - 精度: 最高
+   - コスト: $0.01/画像
+   - レスポンス: 3-5秒
+
+Firebase Functions実装の観点から推奨案をお願いします。
+```
+
+#### Phase 2: 技術比較・推奨（Claude Code → Cursor）
+```markdown
+## 技術選定分析・推奨案
+
+@cursor-system-architect
+
+各選択肢をFirebase Functions実装の観点から分析しました。
+
+### 実装複雑度比較
+| API | 認証 | エラーハンドリング | バッチ処理 | 推奨度 |
+|-----|------|------------------|------------|--------|
+| Vision API | 簡単 | 標準的 | 対応 | ⭐⭐⭐⭐ |
+| Rekognition | 複雑 | 複雑 | 対応 | ⭐⭐⭐ |
+| GPT-4V | 簡単 | 標準的 | 非対応 | ⭐⭐⭐⭐⭐ |
+
+### コスト試算（月間10万枚）
+- Vision API: $150 + Firebase Functions実行費
+- Rekognition: $100 + AWS Lambda費用 + Firebase Functions
+- GPT-4V: $1,000（予算超過）
+
+### 推奨案: Google Cloud Vision API
+**理由:**
+1. Firebase との統合が最もスムーズ
+2. コストが予算内
+3. 実装・保守が容易
+
+### 実装アーキテクチャ案
+```typescript
+// Firebase Functions
+export const analyzeImage = functions
+  .runWith({ memory: '1GB', timeoutSeconds: 30 })
+  .https.onCall(async (data, context) => {
+    const vision = new ImageAnnotatorClient();
+    const [result] = await vision.labelDetection({
+      image: { source: { imageUri: data.imageUrl } }
+    });
+    return processLabels(result.labelAnnotations);
+  });
+```
+
+この方針でよろしいでしょうか？
+```
+
+## 🛠️ 対話実行ツール
+
+### 対話セッション開始スクリプト
+```bash
+#!/bin/bash
+# start-dialogue-session.sh
+
+TOPIC=$1
+PARTICIPANTS=$2
+
+echo "🤖 Starting Cursor ↔ Claude Code Dialogue Session"
+echo "Topic: $TOPIC"
+echo "Participants: $PARTICIPANTS"
+
+# セッション記録ディレクトリ作成
+SESSION_DIR=".cursor/dialogues/$(date +%Y%m%d_%H%M%S)_${TOPIC}"
+mkdir -p "$SESSION_DIR"
+
+# セッション開始
+echo "Session started at $(date)" > "$SESSION_DIR/session.log"
+echo "Participants: $PARTICIPANTS" >> "$SESSION_DIR/session.log"
+
+echo "📝 Session directory: $SESSION_DIR"
+echo "🚀 Ready to start dialogue!"
+```
+
+### 対話記録テンプレート
+```markdown
+# Dialogue Session: [Topic]
+
+## 参加者
+- Cursor (System Architect): [役割]
+- Claude Code ([Engineer]): [役割]
+
+## セッション目標
+[具体的な目標]
+
+## 対話ログ
+### Round 1: [Timestamp]
+**Cursor → Claude Code**
+[メッセージ内容]
+
+**Claude Code → Cursor**
+[レスポンス内容]
+
+### Round 2: [Timestamp]
+...
+
+## 結論・決定事項
+- [決定事項1]
+- [決定事項2]
+
+## 次のアクション
+- [ ] [アクション1] - 担当: [誰]
+- [ ] [アクション2] - 担当: [誰]
+```
+
+## 📊 対話効果測定
+
+### 品質向上指標
+```typescript
+interface DialogueEffectiveness {
+  specificationQuality: {
+    completeness: number;      // 仕様の完全性 (0-100%)
+    clarity: number;           // 明確性 (0-100%)
+    consistency: number;       // 一貫性 (0-100%)
+  };
+  
+  implementationAccuracy: {
+    firstTimeRight: number;    // 一発実装成功率
+    reworkRate: number;        // 手戻り率
+    bugRate: number;          // バグ発生率
+  };
+  
+  efficiency: {
+    dialogueRounds: number;    // 平均対話ラウンド数
+    timeToDecision: number;    // 決定までの時間
+    implementationSpeed: number; // 実装速度向上率
+  };
+}
+```
+
+### 対話パターン最適化
+```yaml
+# 効果的な対話パターンの学習
+dialogue_patterns:
+  high_effectiveness:
+    - pattern: "要件→技術検証→設計調整"
+      success_rate: 85%
+      avg_rounds: 3
+    - pattern: "実装→レビュー→改善"
+      success_rate: 90%
+      avg_rounds: 2
+      
+  improvement_needed:
+    - pattern: "技術選定→比較→決定"
+      success_rate: 70%
+      issue: "選択肢が多すぎる場合の効率低下"
+      improvement: "事前フィルタリング強化"
+```
+
+---
+
+**対話システム方針**: Cursorの全体設計力とClaude Codeの実装詳細力を組み合わせ、段階的な対話により仕様・設計の精度を最大化。対話の記録と分析により、継続的にプロセスを改善します。
